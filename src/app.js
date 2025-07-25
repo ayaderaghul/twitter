@@ -4,9 +4,12 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
+const http = require('http')
+const socketIo = require('socket.io')
 
 const authRoutes = require('./routes/authRoutes')
 const tweetRoutes = require('./routes/tweetRoutes')
+const userRoutes = require('./routes/userRoutes')
 dotenv.config()
 
 
@@ -46,13 +49,25 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 
 const app = express()
+const server = http.createServer(app)
+const io = socketIo(server, {
+  cors: {
+    origin: "*",  // Temporary (replace with your frontend URL later)
+    methods: ["GET", "POST"]
+  }
+});
+
+app.set('io', io)
 
 app.use(cors())
 app.use(helmet())
 app.use(morgan("dev"))
 app.use(express.json())
+
+
 app.use('/api/auth', authRoutes)
 app.use('/api/tweets', tweetRoutes)
+app.use('/api/users', userRoutes)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 mongoose.connect(process.env.MONGODB_URI)
@@ -65,6 +80,6 @@ app.get("/", (req, res) => {
 })
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => {
-    console.log(`server running on http:localhost:${PORT}`)
+server.listen(PORT, () => {
+    console.log(`server + websocket running on http:localhost:${PORT}`)
 })

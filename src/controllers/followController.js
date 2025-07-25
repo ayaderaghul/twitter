@@ -1,0 +1,29 @@
+const User = require('../models/User')
+const Notification = require('../models/Notification');
+
+exports.followUser = async (req, res) => {
+    try {
+        const currentUser = req.user
+        const userToFollow = await User.findById(req.params.id)
+        if (!userToFollow) return res.status(404).send('User not found')
+
+        req.user.following.push(userToFollow._id)
+        userToFollow.followers.push(currentUser)
+        await req.user.save()
+        await userToFollow.save()
+
+        const notification = new Notification({
+            recipient: userToFollow._id,
+            sender: req.user.id,
+            type: 'follow'
+        })
+        await notification.save()
+        const io = req.app.get('io')
+        io.to(userToFollow._id.toString()).emit('notification', notification)
+
+        res.status(200).json({message: 'followed successfully'})
+
+    } catch (err) {
+        res.status(500).json({error: err.message})
+    }
+}

@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String, default: "" },
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }]
 });
 
 // Mã hóa mật khẩu trước khi lưu
