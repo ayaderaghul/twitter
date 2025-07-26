@@ -1,4 +1,7 @@
 const { io } = require("socket.io-client");
+const dotenv = require('dotenv')
+
+dotenv.config()
 
 const socket = io("http://localhost:5003", {
   transports: ["websocket"],
@@ -6,7 +9,7 @@ const socket = io("http://localhost:5003", {
   reconnectionDelay: 1000,
   timeout: 20000,
   auth: {
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ODRhYWJkZWU2OTAzZjQ4MDBmMzY4MSIsImlhdCI6MTc1MzUyNDkyNiwiZXhwIjoxNzUzNjExMzI2fQ.U9yDDvLP1YlIRPnT2ebW_armIg6t1PKlp-QG96_nOVI" // If using auth
+    token: process.env.TOKEN_SP
   }
 });
 
