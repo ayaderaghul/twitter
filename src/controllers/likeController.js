@@ -6,6 +6,24 @@ exports.likeTweet = async (req, res) => {
         const tweet = await Tweet.findById(req.params.id)
         if (!tweet) return res.status(404).send('Tweet not found')
 
+
+        // Prevent self-liking
+        if (tweet.author.toString() === req.user.id) {
+            return res.status(400).json({ 
+                error: "You cannot like your own tweet",
+                code: "SELF_LIKE_NOT_ALLOWED"
+            });
+        }
+
+        // Check if already liked
+        if (tweet.likes.includes(req.user.id)) {
+            return res.status(400).json({
+                error: "You already liked this tweet",
+                code: "ALREADY_LIKED"
+            });
+        }
+
+        
         tweet.likes.push(req.user.id)
         await tweet.save()
 

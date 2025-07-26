@@ -1,9 +1,10 @@
 const express = require ('express')
 
-const {getTweets, createTweet} = require('../controllers/tweetController')
+const {getTweets, createTweet, retweet} = require('../controllers/tweetController')
 const {likeTweet} = require('../controllers/likeController')
 
 const authMiddleware = require('../middleware/authMiddleware')
+const parseMentions = require('../middleware/parseMentions')
 
 const router = express.Router()
 
@@ -98,10 +99,8 @@ router.get('/',authMiddleware, getTweets)
  * @swagger
  * /api/tweets:
  *   post:
- *     summary: Create a new tweet
+ *     summary: Create a tweet (with mentions)
  *     tags: [Tweets]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -111,13 +110,12 @@ router.get('/',authMiddleware, getTweets)
  *             properties:
  *               content:
  *                 type: string
+ *                 example: "Hello @user1 and @user2!"
  *     responses:
  *       201:
- *         description: Tweet created successfully
- *       401:
- *         description: Unauthorized (missing/invalid token)
+ *         description: Tweet created with mentions
  */
-router.post('/',authMiddleware, createTweet)
+router.post('/',authMiddleware, parseMentions, createTweet)
 
 
 /**
@@ -148,5 +146,39 @@ router.post('/',authMiddleware, createTweet)
  *         description: Tweet not found
  */
 router.post('/:id/like', authMiddleware, likeTweet)
+
+
+/**
+ * @swagger
+ * /api/tweets/{id}/retweet:
+ *   post:
+ *     summary: Retweet a tweet
+ *     tags: [Tweets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the tweet to retweet
+ *     responses:
+ *       201:
+ *         description: Successfully retweeted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Tweet'
+ *       400:
+ *         description: Invalid input/Already retweeted
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       404:
+ *         description: Tweet not found
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.post('/:id/retweet', authMiddleware, retweet);
 
 module.exports = router
